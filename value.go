@@ -173,6 +173,9 @@ func (v *Value) Get() interface{} {
 	case TYPE_GTYPE:
 		return Type(C.g_value_get_gtype(v.g()))
 	}
+	if t.IsA(TYPE_ENUM) {
+	    return int(C.g_value_get_enum(v.g()))
+	}
 	if t.IsA(TYPE_OBJECT) {
 		o := new(Object)
 		o.SetPtr(Pointer(C.g_value_get_object(v.g())))
