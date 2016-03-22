@@ -207,7 +207,7 @@ type sigHandler struct {
 var obj_handlers = make(map[uintptr]map[SigHandlerId]*sigHandler)
 
 func (o *Object) connect(noi bool, sid SignalId, detail Quark, cb_func,
-	param0 interface{}) {
+	param0 interface{}) SigHandlerId {
 	cb := reflect.ValueOf(cb_func)
 	if cb.Kind() != reflect.Func {
 		panic("cb_func isn't a function")
@@ -280,32 +280,45 @@ func (o *Object) connect(noi bool, sid SignalId, detail Quark, cb_func,
 		obj_handlers[uintptr(o.p)] = oh
 	}
 	oh[SigHandlerId(gocl.h_id)] = &sigHandler{cb, p0} // p0 for prevent GC
+	return SigHandlerId(gocl.h_id)
 }
 
 // Connect callback to signal specified by id
 func (o *Object) ConnectSid(sid SignalId, detail Quark,
-	cb_func, param0 interface{}) {
-	o.connect(false, sid, detail, cb_func, param0)
+	cb_func, param0 interface{}) SigHandlerId {
+	return o.connect(false, sid, detail, cb_func, param0)
 }
 
 // Connect callback to signal specified by id.
 // Doesn't pass o as first parameter to callback.
 func (o *Object) ConnectSidNoi(sid SignalId, detail Quark,
-	cb_func, param0 interface{}) {
-	o.connect(true, sid, detail, cb_func, param0)
+	cb_func, param0 interface{}) SigHandlerId {
+	return o.connect(true, sid, detail, cb_func, param0)
 }
 
 // Connect callback to signal specified by name.
-func (o *Object) Connect(sig_name string, cb_func, param0 interface{}) {
+func (o *Object) Connect(sig_name string, cb_func, param0 interface{}) SigHandlerId {
 	sid, detail := SignalLookup(sig_name, o.Type())
-	o.connect(false, sid, detail, cb_func, param0)
+	return o.connect(false, sid, detail, cb_func, param0)
 }
 
 // Connect callback to signal specified by name.
 // Doesn't pass o as first parameter to callback.
-func (o *Object) ConnectNoi(sig_name string, cb_func, param0 interface{}) {
+func (o *Object) ConnectNoi(sig_name string, cb_func, param0 interface{}) SigHandlerId {
 	sid, detail := SignalLookup(sig_name, o.Type())
-	o.connect(true, sid, detail, cb_func, param0)
+	return o.connect(true, sid, detail, cb_func, param0)
+}
+
+// Disconnect a callback, allowing its parameters to be garbage-collected.
+func (o *Object) Disconnect(id SigHandlerId) {
+	oh := obj_handlers[uintptr(o.p)]
+	if oh == nil {
+		return
+	}
+	delete(oh, id)
+	if len(oh) == 0 {
+		delete(obj_handlers, uintptr(o.p))
+	}
 }
 
 type Params map[string]interface{}
