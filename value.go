@@ -174,7 +174,7 @@ func (v *Value) Get() interface{} {
 		return Type(C.g_value_get_gtype(v.g()))
 	}
 	if t.IsA(TYPE_ENUM) {
-	    return int(C.g_value_get_enum(v.g()))
+		return int(C.g_value_get_enum(v.g()))
 	}
 	if t.IsA(TYPE_OBJECT) {
 		o := new(Object)
@@ -249,5 +249,9 @@ func (v *Value) GetType() Type {
 }
 
 func (v *Value) String() string {
-	return fmt.Sprint(v.Get())
+	x := v.Get()
+	if x == v {
+		return "<GValue of unknown type>"
+	}
+	return fmt.Sprint(x)
 }
