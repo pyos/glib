@@ -100,9 +100,9 @@ void _signal_emit(const GValue *inst_and_params, guint id, GQuark detail,
 import "C"
 
 import (
+	"fmt"
 	"reflect"
 	"unsafe"
-	"fmt"
 )
 
 type ObjectCaster interface {
@@ -187,7 +187,7 @@ func (o *Object) EmitById(sid SignalId, detail Quark, args ...interface{}) inter
 	}
 	ret := new(Value)
 	if sq.return_type != C.G_TYPE_NONE {
-    	C.g_value_init((*C.GValue)(ret), sq.return_type)
+		C.g_value_init((*C.GValue)(ret), sq.return_type)
 	}
 	C._signal_emit(prms[0].g(), C.guint(sid), C.GQuark(detail), ret.g())
 	return ret.Get()
