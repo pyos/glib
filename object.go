@@ -186,6 +186,9 @@ func (o *Object) EmitById(sid SignalId, detail Quark, args ...interface{}) inter
 		prms[i+1] = *ValueOf(a)
 	}
 	ret := new(Value)
+	if sq.return_type != C.G_TYPE_NONE {
+    	C.g_value_init((*C.GValue)(ret), sq.return_type)
+	}
 	C._signal_emit(prms[0].g(), C.guint(sid), C.GQuark(detail), ret.g())
 	return ret.Get()
 }
@@ -368,7 +371,7 @@ func objectMarshal(mp *C.MarshalParams) {
 	n_param := int(mp.n_param)
 	first_param := 0
 	if gc.no_inst != 0 {
-		// Callback without instance on which signal was emited as first param 
+		// Callback without instance on which signal was emited as first param
 		first_param++
 	}
 	prms := (*[1 << 16]Value)(unsafe.Pointer(mp.params))[:n_param]
